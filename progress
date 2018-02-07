@@ -1,0 +1,26 @@
+#!/bin/bash
+oc login https://master.xv33.acumena-os.com --insecure-skip-tls-verify=true -p Xv.1234 -u admin
+for i in `seq -w 01 30`;
+do
+   projectmsg=$(oc project explore-$i 2>&1)
+   myarray=($projectmsg)
+   projectname=${myarray[3]}
+
+   pods=$(oc get pod 2>&1)
+   if [[ "$pods" == *"mlb"* ]]; then
+      echo "**** $projectname: 16 (MLB)"
+   elif [[ "$pods" == *"nationalparks-live"* ]]; then
+      echo "**** $projectname: 14b (NP-LIVE)"
+   elif [[ "$pods" == *"jenkins"* ]]; then
+      echo "**** $projectname: 14a (JENKINS)"
+   elif [[ "$pods" == *"mongodb"* ]]; then
+      echo "**** $projectname: 11 (MONGO)"
+   elif [[ "$pods" == *"national"* ]]; then
+      echo "**** $projectname: 10 (NP)"
+   elif [[ "$pods" == *"parksmap"* ]]; then
+      echo "**** $projectname: 4 (PARKSMAP)"
+   else
+      echo "$projectname: 0"
+   fi
+done
+oc logout

@@ -1,0 +1,78 @@
+#!/bin/bash
+
+for i in `seq -w 00 01`;
+do
+   echo "------------------------------------------------------------------------------ $i --------------------------------------------------------"
+   oc login https://master.xv33.acumena-os.com --insecure-skip-tls-verify=true -p openshift3 -u user$i | grep -v "Login successful" | grep -v "You have one project on this server" | grep -v -e '^$'
+   oc project explore-$i | grep -v "Already on project"
+
+   errormessage=$(oc get build 2>&1)
+   if [ "$errormessage" != "No resources found." ]; then
+      echo "*** build ***"
+      oc get build | grep -v "NAME"
+   fi
+
+   errormessage=$(oc get imagestream 2>&1)
+   if [ "$errormessage" != "No resources found." ]; then
+      echo "*** imagestream ***"
+      oc get imagestream | grep -v "NAME"
+   fi
+
+   errormessage=$(oc get dc 2>&1)
+   if [ "$errormessage" != "No resources found." ]; then
+      echo "*** dc ***"
+      oc get dc | grep -v "NAME"
+   fi
+
+   errormessage=$(oc get service 2>&1)
+   if [ "$errormessage" != "No resources found." ]; then
+      echo "*** service ***"
+      oc get service | grep -v "NAME"
+   fi
+
+   errormessage=$(oc get secret | grep -v "NAME" | grep -v "\-dockercfg\-" | grep -v "\-token\-" 2>&1)
+   #echo "Output: $errormessage"
+   if [ "$errormessage" != "" ]; then
+      echo "*** secret ***"
+      oc get secret | grep -v "NAME" | grep -v "\-dockercfg\-" | grep -v "\-token\-"
+   fi
+
+   errormessage=$(oc get configmap 2>&1)
+   if [ "$errormessage" != "No resources found." ]; then
+      echo "*** configmap ***"
+      oc get configmap | grep -v "NAME"
+   fi
+
+   errormessage=$(oc get route 2>&1)
+   if [ "$errormessage" != "No resources found." ]; then
+      echo "*** route ***"
+      oc get route | grep -v "NAME"
+   fi
+
+   errormessage=$(oc get sa | grep -v "NAME" | grep -v "builder" | grep -v "default" | grep -v "deployer" 2>&1)
+   #echo "Output: $errormessage"
+   if [ "$errormessage" != "" ]; then
+      echo "*** sa ***"
+      oc get sa | grep -v "NAME" | grep -v "builder" | grep -v "default" | grep -v "deployer"
+   fi
+
+   errormessage=$(oc get template 2>&1)
+   if [ "$errormessage" != "No resources found." ]; then
+      echo "*** template ***"
+      oc get template | grep -v "NAME"
+   fi
+
+   errormessage=$(oc get pod 2>&1)
+   if [ "$errormessage" != "No resources found." ]; then
+      echo "*** pod ***"
+      oc get pod | grep -v "NAME"
+   fi
+
+   errormessage=$(oc get rolebindings 2>&1)
+   if [ "$errormessage" != "" ]; then
+      echo "*** rolebindings ***"
+      oc get rolebindings | grep -v "NAME" | grep -v "admin" | grep -v "system:deployers" | grep -v "system:image-builders" | grep -v "system:image-pullers"
+   fi
+
+   oc logout | grep -v "$Logged "
+done

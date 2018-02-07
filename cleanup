@@ -1,0 +1,23 @@
+#!/bin/bash
+
+range="01 99"
+
+oc login https://master.xv33.acumena-os.com --insecure-skip-tls-verify=true -p Xv.1234 -u admin
+for i in `oc get project | awk '{print $1}'`;
+do
+   if [ "$i" == 'NAME' -o "$i" == 'default' -o "$i" == 'explore-00' -o "$i" == 'bpms-cicd' -o "$i" == 'kube-system' -o "$i" == 'logging' -o "$i" == 'management-infra' -o "$i" == 'openshift' -o "$i"  == 'openshift-infra' -o "$i" == 'workshop-infra' ]; then
+      echo ""
+   else
+      echo "------------------------------------------------------------------------------ $i --------------------------------------------------------"
+      oc delete project $i
+   fi
+done
+oc logout
+
+for i in `seq -w $range`;
+do
+   echo "------------------------------------------------------------------------------ $i --------------------------------------------------------"
+   oc login https://master.xv33.acumena-os.com --insecure-skip-tls-verify=true -p openshift3 -u user$i | grep -v "Login successful" | grep -v "You don't have any projects" | grep -v "oc new-project <projectname>" | grep -v -e '^$'
+   oc new-project explore-$i | grep -v "You can add applications to this project" | grep -v "oc new-app centos" | grep -v "to build a new example application in Ruby" | grep -v -e '^$'
+   oc logout | grep -v "$Logged "
+done
