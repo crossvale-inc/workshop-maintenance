@@ -30,3 +30,6 @@
 #
 # To register attendees for the workshop add them (with the cluster on)onto 
 #  http://etherpad-workshop-infra.cloudapps.xv33.acumena-os.com/p/roadshow
+#
+#
+# Make sure to stop all instances when workshop is not being used.
