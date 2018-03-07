@@ -7,7 +7,7 @@ do
    if [ "$result" == "" ]; then
       echo "$i has been changed"
    fi
-   result=$(curl -s1 http://gitlab-ce-workshop-infra.cloudapps.xv33.acumena-os.com/user$i/nationalparks/settings/integrations?private_token=Pz45MErWvbpv-93ojozt | grep "master.xv33.acumena-os.com/oapi")
+   result=$(curl -s1 http://gitlab-ce-workshop-infra.cloudapps.xv33.acumena-os.com/user$i/nationalparks/settings/integrations?private_token=fR7RH2JGwSZnwr3jvroZ | grep "master.xv33.acumena-os.com/oapi")
    if [ "$result" != "" ]; then
       echo "$i HAS a webhook"
    fi
