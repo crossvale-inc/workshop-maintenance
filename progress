@@ -1,26 +1,186 @@
 #!/bin/bash
-oc login https://master.xv33.acumena-os.com --insecure-skip-tls-verify=true -p Xv.1234 -u admin
-for i in `seq -w 01 30`;
-do
-   projectmsg=$(oc project explore-$i 2>&1)
-   myarray=($projectmsg)
-   projectname=${myarray[3]}
 
-   pods=$(oc get pod 2>&1)
-   if [[ "$pods" == *"mlb"* ]]; then
-      echo "**** $projectname: 16 (MLB)"
-   elif [[ "$pods" == *"nationalparks-live"* ]]; then
-      echo "**** $projectname: 14b (NP-LIVE)"
-   elif [[ "$pods" == *"jenkins"* ]]; then
-      echo "**** $projectname: 14a (JENKINS)"
-   elif [[ "$pods" == *"mongodb"* ]]; then
-      echo "**** $projectname: 11 (MONGO)"
-   elif [[ "$pods" == *"national"* ]]; then
-      echo "**** $projectname: 10 (NP)"
-   elif [[ "$pods" == *"parksmap"* ]]; then
-      echo "**** $projectname: 4 (PARKSMAP)"
-   else
-      echo "$projectname: 0"
-   fi
+range="01 30"
+list="00 01 15 17 19 21 23 24 25 26 28 29"
+
+gitlabresponse=$(curl -s1 http://gitlab-ce-workshop-infra.cloudapps.xv33.acumena-os.com/api/v3/session/ --data-urlencode 'login=root' --data-urlencode 'password=password')
+token=$(expr "$gitlabresponse" : '.*"private_token":"\([^"]*\)"')
+echo "GitLab Token: $token"
+
+notattending=0
+me=$(oc whoami 2>&1)
+
+if [[ "$me" == *"admin"* ]]; then
+  echo "Already logged in"
+else
+  echo "Logging in ..."
+  oc login https://master.xv33.acumena-os.com --insecure-skip-tls-verify=true -p Xv.1234 -u admin > /dev/null
+fi
+
+echo ""
+
+while true
+do
+  sect0=""
+  sect4=""
+  sect6=""
+  sect8=""
+  sect10=""
+  sect11=""
+  sect14a=""
+  sect14b=""
+  sect15a=""
+  sect15b=""
+  sect16=""
+  sect17=""
+
+  total=0
+  sect0count=0
+  sect4count=0
+  sect6count=0
+  sect8count=0
+  sect10count=0
+  sect11count=0
+  sect14acount=0
+  sect14bcount=0
+  sect15acount=0
+  sect15bcount=0
+  sect16count=0
+  sect17count=0
+
+  for i in `seq -w $range`;
+  do
+    projectname=explore-$i
+    pods=$(oc get pod -n $projectname 2>&1)
+    if [[ " $list " =~ " $i " ]]; then
+      if [[ "$pods" == *"No resources found"* ]]; then
+        notattending=$((notattending+1))
+      else
+        echo "Unexpected attendee $projectname"
+      fi
+    else
+      total=$((total+1))
+      sepprojectname=$(printf "\n   %s" "$projectname")
+
+      replicas=$(oc get rc -l openshift.io/deployment-config.name=mlbparks -o jsonpath='{.items[].status.replicas}' -n $projectname  2>&1)
+
+      if [[ "$replicas" == "2" ]]; then
+        echo "**** $projectname: 17 (CLUSTERING)"
+        sect17+="$sepprojectname"
+        sect17count=$((sect17count+1))
+      elif [[ "$pods" == *"mlb"* ]]; then
+        echo "**** $projectname: 16 (MLB)"
+        sect16+="$sepprojectname"
+        sect16count=$((sect16count+1))
+      elif [[ "$pods" == *"nationalparks-live"* ]]; then
+        changed=$(curl -s1 http://gitlab-ce-workshop-infra.cloudapps.xv33.acumena-os.com/user$i/nationalparks/blob/1.2.0/src/main/java/com/openshift/evg/roadshow/parks/rest/BackendController.java?private_token=$token | grep "47.039304" | grep '\"National Parks\"')
+        if [[ "$changed" == "" ]]; then
+          echo "**** $projectname: 15b (Source updated)"
+          sect15b+="$sepprojectname"
+          sect15bcount=$((sect15bcount+1))
+        else
+          webhook=$(curl -s1 http://gitlab-ce-workshop-infra.cloudapps.xv33.acumena-os.com/user$i/nationalparks/settings/integrations?private_token=$token | grep "master.xv33.acumena-os.com/oapi")
+          if [[ "$webhook" != "" ]]; then
+            echo "**** $projectname: 15a (Webhook configured)"
+            sect15a+="$sepprojectname"
+            sect15acount=$((sect15acount+1))
+          else
+            echo "**** $projectname: 14b (NP-LIVE)"
+            sect14b+="$sepprojectname"
+            sect14bcount=$((sect14bcount+1))
+          fi
+        fi
+      elif [[ "$pods" == *"jenkins"* ]]; then
+        echo "**** $projectname: 14a (JENKINS)"
+        sect14a+="$sepprojectname"
+        sect14acount=$((sect14acount+1))
+      elif [[ "$pods" == *"mongodb"* ]]; then
+        echo "**** $projectname: 11 (MONGO)"
+        sect11+="$sepprojectname"
+        sect11count=$((sect11count+1))
+      elif [[ "$pods" == *"national"* ]]; then
+        echo "**** $projectname: 10 (NP)"
+        sect10+="$sepprojectname"
+        sect10count=$((sect10count+1))
+      elif [[ "$pods" == *"parksmap"* ]]; then
+        rbs=$(oc get rolebinding -n explore-30 | grep view 2>&1)
+        if [[ "$rbs" == *"user"* ]]; then
+          echo "**** $projectname: 8 (RBAC)"
+          sect8+="$sepprojectname"
+          sect8count=$((sect8count+1))
+        else
+          routes=$(oc get route -n $projectname 2>&1)
+          if [[ "$routes" == *"parksmap"* ]]; then
+            echo "**** $projectname: 6 (ROUTE)"
+            sect6+="$sepprojectname"
+            sect6count=$((sect6count+1))
+          else
+            echo "**** $projectname: 4 (PARKSMAP)"
+            sect4+="$sepprojectname"
+            sect4count=$((sect4count+1))
+          fi
+        fi
+      else
+        echo "$projectname: -"
+        sect0+="$sepprojectname"
+        sect0count=$((sect0count+1))
+      fi
+    fi
+  done
+
+  echo ""
+
+  if [[ "$sect17" != "" ]]; then
+    echo "17 (CLUSTERING): $sect17count"/"$total $sect17"
+  fi
+
+  if [[ "$sect16" != "" ]]; then
+    echo "16 (MLB): $sect16count"/"$total $sect16"
+  fi
+
+  if [[ "$sect15b" != "" ]]; then
+    echo "15b (Source updated): $sect15bcount"/"$total $sect15b"
+  fi
+
+  if [[ "$sect15a" != "" ]]; then
+    echo "15a (Webhook configured): $sect15acount"/"$total $sect15a"
+  fi
+
+  if [[ "$sect14b" != "" ]]; then
+    echo "14b (NP-LIVE): $sect14bcount"/"$total $sect14b"
+  fi
+
+  if [[ "$sect14a" != "" ]]; then
+    echo "14a (JENKINS): $sect14acount"/"$total $sect14a"
+  fi
+
+  if [[ "$sect11" != "" ]]; then
+    echo "11 (MONGO): $sect11count"/"$total $sect11"
+  fi
+
+  if [[ "$sect10" != "" ]]; then
+    echo "10 (NP): $sect10count"/"$total $sect10"
+  fi
+
+  if [[ "$sect8" != "" ]]; then
+    echo "8 (RBAC): $sect8count"/"$total $sect8"
+  fi
+
+  if [[ "$sect6" != "" ]]; then
+    echo "6 (ROUTE): $sect6count"/"$total $sect6"
+  fi
+
+  if [[ "$sect4" != "" ]]; then
+    echo "4 (PARKSMAP): $sect4count"/"$total $sect4"
+  fi
+
+  if [[ "$sect0" != "" ]]; then
+    echo "Nothing deployed yet: $sect0count"/"$total $sect0"
+  fi
+
+  echo "-----------------------------------"
+
+  sleep 120
 done
-oc logout
+
+echo "$notattending not attending"
