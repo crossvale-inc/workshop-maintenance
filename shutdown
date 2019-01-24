@@ -1,0 +1,36 @@
+#!/bin/bash
+
+me=$(oc whoami 2>&1)
+
+if [[ "$me" == *"admin"* ]]; then
+  echo "Already logged in"
+else
+  echo "Logging in ..."
+  oc login https://master.xv33.acumena-os.com --insecure-skip-tls-verify=true -p Xv.1234 -u admin > /dev/null
+fi
+
+echo "Shutting down the cluster..."
+oc project workshop-infra
+
+dcs=( "etherpad" "mysql-pad" "gitlab-ce" "gitlab-ce-postgresql" "gitlab-ce-redis" "labs" )
+
+for app in "${dcs[@]}"
+do
+  pods=$(oc get dc/$app -o jsonpath='{.status.replicas}' -n workshop-infra 2&>1)
+
+  if [[ "$pods" != "0" ]]; then
+    echo "Scaling down $app..."
+    oc scale dc/$app --replicas=0 -n workshop-infra
+
+    while [ "$pods" != "0" ]
+    do
+      echo -e "Waiting for $app to be scaled down..."
+      sleep 5
+      break
+    done
+  fi
+
+  echo "$app has no replicas running"
+done
+
+echo "The environment should be already shutdown. Verify in the webconsole before shutdown the instaces."
