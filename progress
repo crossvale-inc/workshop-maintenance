@@ -64,14 +64,17 @@ do
 
       replicas=$(oc get rc -l openshift.io/deployment-config.name=mlbparks -o jsonpath='{.items[].status.replicas}' -n $projectname  2>&1)
 
-      if [[ "$replicas" == "2" ]]; then
-        echo "**** $projectname: 17 (CLUSTERING)"
-        sect17+="$sepprojectname"
-        sect17count=$((sect17count+1))
-      elif [[ "$pods" == *"mlb"* ]]; then
-        echo "**** $projectname: 16 (MLB)"
-        sect16+="$sepprojectname"
-        sect16count=$((sect16count+1))
+      if [[ "$pods" == *"mlb"* ]]; then
+        replicas=$(oc get rc -l openshift.io/deployment-config.name=mlbparks -o jsonpath='{.items[].status.replicas}' -n $projectname  2>&1)
+        if [[ "$replicas" == "2" ]]; then
+          echo "**** $projectname: 17 (CLUSTERING)"
+          sect17+="$sepprojectname"
+          sect17count=$((sect17count+1))
+        else
+          echo "**** $projectname: 16 (MLB)"
+          sect16+="$sepprojectname"
+          sect16count=$((sect16count+1))
+        fi
       elif [[ "$pods" == *"nationalparks-live"* ]]; then
         changed=$(curl -s1 http://gitlab-ce-workshop-infra.cloudapps.xv33.acumena-os.com/user$i/nationalparks/blob/1.2.0/src/main/java/com/openshift/evg/roadshow/parks/rest/BackendController.java?private_token=$token | grep "47.039304" | grep '\"National Parks\"')
         if [[ "$changed" == "" ]]; then
