@@ -14,6 +14,15 @@ do
 done
 oc logout
 
+echo "Deleting all the projects now... Wait 120 seconds for OpenShift to finish the operation..."
+
+sleep 120
+
+echo ""
+echo ""
+echo "Check that all projects are gone before continue."
+read -p "Press ENTER to continue..."
+
 for i in `seq -w $range`;
 do
    echo "------------------------------------------------------------------------------ $i --------------------------------------------------------"
