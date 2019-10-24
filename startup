@@ -9,7 +9,7 @@ else
   oc login https://master.xv33.acumena-os.com --insecure-skip-tls-verify=true -p Xv.1234 -u admin > /dev/null
 fi
 
-echo "Shutting down the cluster..."
+echo "Starting up the cluster..."
 oc project workshop-infra
 
 dcs=( "labs" "gitlab-ce-redis" "gitlab-ce-postgresql" "gitlab-ce" "mysql-pad" "etherpad" )
@@ -19,7 +19,7 @@ do
   pods=$(oc get dc/$app -o jsonpath='{.status.replicas}' -n workshop-infra 2&>1)
 
   if [[ "$pods" == "0" ]]; then
-    echo "Scaling down $app..."
+    echo "Scaling up $app..."
     oc scale dc/$app --replicas=1 -n workshop-infra
 
     # Properly monitor through RC
@@ -31,7 +31,5 @@ do
     # done
   fi
 
-  echo "$app has no replicas running"
+  echo "$app has 1 replica running"
 done
-
-echo "The environment should be already shutdown. Verify in the webconsole before shutdown the instaces."
