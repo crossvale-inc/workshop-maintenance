@@ -12,15 +12,15 @@ fi
 echo "Shutting down the cluster..."
 oc project workshop-infra
 
-dcs=( "etherpad" "mysql-pad" "gitlab-ce" "gitlab-ce-postgresql" "gitlab-ce-redis" "labs" )
+dcs=( "labs" "gitlab-ce-redis" "gitlab-ce-postgresql" "gitlab-ce" "mysql-pad" "etherpad" )
 
 for app in "${dcs[@]}"
 do
   pods=$(oc get dc/$app -o jsonpath='{.status.replicas}' -n workshop-infra 2&>1)
 
-  if [[ "$pods" != "0" ]]; then
+  if [[ "$pods" == "0" ]]; then
     echo "Scaling down $app..."
-    oc scale dc/$app --replicas=0 -n workshop-infra
+    oc scale dc/$app --replicas=1 -n workshop-infra
 
     # Properly monitor through RC
     # while [ "$pods" != "0" ]
