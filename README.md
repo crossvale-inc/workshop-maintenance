@@ -1,12 +1,13 @@
 # Workshop-Maintenance
 
 ## Workshop startup
-Cluster must be on completely on before running the scripts
 To start the cluster in AWS N Virginia, startup the instances in the following order:
 * infranode
 * master
 * nfs
 * node 01,02,03,...(all numbered nodes)
+
+**NOTE**: The cluster https://master.xv33.acumena-os.com must be on completely on before running the scripts
 
 ## Startup script
 The services deploying within the OCP cluster as infrastructure for running the Workshop have to be started in a particular order.
