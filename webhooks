@@ -1,7 +1,7 @@
 #!/bin/bash
 oc login https://master.xv33.acumena-os.com --insecure-skip-tls-verify=true -p Xv.1234 -u admin
 oc get nodes
-for i in `seq -w 00 99`;
+for i in `seq -w 01 99`;
 do
    result=$(curl -s1 http://gitlab-ce-workshop-infra.cloudapps.xv33.acumena-os.com/user$i/nationalparks/blob/1.2.0/src/main/java/com/openshift/evg/roadshow/parks/rest/BackendController.java | grep "47.039304" | grep '\"National Parks\"')
    if [ "$result" == "" ]; then

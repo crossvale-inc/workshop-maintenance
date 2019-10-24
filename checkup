@@ -1,6 +1,6 @@
 #!/bin/bash
 
-for i in `seq -w 00 99`;
+for i in `seq -w 01 99`;
 do
    echo "------------------------------------------------------------------------------ $i --------------------------------------------------------"
    oc login https://master.xv33.acumena-os.com --insecure-skip-tls-verify=true -p openshift3 -u user$i | grep -v "Login successful" | grep -v "You have one project on this server" | grep -v -e '^$'
