@@ -16,7 +16,7 @@ dcs=( "labs" "gitlab-ce-redis" "gitlab-ce-postgresql" "gitlab-ce" "mysql-pad" "e
 
 for app in "${dcs[@]}"
 do
-  pods=$(oc get dc/$app -o jsonpath='{.status.replicas}' -n workshop-infra 2&>1)
+  pods=$(oc get dc/$app -o jsonpath='{.status.replicas}' -n workshop-infra)
 
   if [[ "$pods" == "0" ]]; then
     echo "Scaling up $app..."

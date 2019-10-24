@@ -1,5 +1,7 @@
 # Workshop-Maintenance
 
+**IMPORTANT**: For all commands in the following scripts to run properly and as intended it is required to use the version of the 'oc' command line tool that matches your OCP cluster verision.
+
 ## Workshop startup
 To start the cluster in AWS N Virginia, startup the instances in the following order:
 * infranode
